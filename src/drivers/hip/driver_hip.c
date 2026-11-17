@@ -414,12 +414,30 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+#if HIP_VERSION >= 50000000
+	int yes;
+#endif
 
 	if (hip_memory_init[devid])
 	{
 		memory_node = hip_memory_nodes[devid];
 	}
+#if HIP_VERSION >= 50000000
+	else if ( (!hipDeviceGetAttribute(&yes, hipDeviceAttributeManagedMemory, devid)) && yes
+		&& (!hipDeviceGetAttribute(&yes, hipDeviceAttributeConcurrentManagedAccess, devid)) && yes
+		&& (!hipDeviceGetAttribute(&yes, hipDeviceAttributePageableMemoryAccess, devid)) && yes
+		&& (!hipDeviceGetAttribute(&yes, hipDeviceAttributePageableMemoryAccessUsesHostPageTables, devid)) && yes)
+	{
+		_STARPU_MSG("hip device %d supports physical concurrent managed memory, using it", devid);
+
+		hip_memory_init[devid] = 1;
+#ifdef STARPU_DEVEL
+#warning "NUMA support?"
+#endif
+		memory_node = hip_memory_nodes[devid] = STARPU_MAIN_RAM;
+	}
 	else
+#endif
 	{
 		hip_memory_init[devid] = 1;
 

@@ -666,12 +666,30 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+#if CUDART_VERSION >= 10000
+	int yes;
+#endif
 
 	if (cuda_memory_init[devid])
 	{
 		memory_node = cuda_memory_nodes[devid];
 	}
+#if CUDART_VERSION >= 10000
+	else if ( (!cudaDeviceGetAttribute(&yes, cudaDevAttrManagedMemory, devid)) && yes
+		&& (!cudaDeviceGetAttribute(&yes, cudaDevAttrConcurrentManagedAccess, devid)) && yes
+		&& (!cudaDeviceGetAttribute(&yes, cudaDevAttrPageableMemoryAccess, devid)) && yes
+		&& (!cudaDeviceGetAttribute(&yes, cudaDevAttrPageableMemoryAccessUsesHostPageTables, devid)) && yes)
+	{
+		_STARPU_MSG("cuda device %d supports physical concurrent managed memory, using it", devid);
+
+		cuda_memory_init[devid] = 1;
+#ifdef STARPU_DEVEL
+#warning "NUMA support?"
+#endif
+		memory_node = cuda_memory_nodes[devid] = STARPU_MAIN_RAM;
+	}
 	else
+#endif
 	{
 		cuda_memory_init[devid] = 1;
 
