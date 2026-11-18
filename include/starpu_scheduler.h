@@ -342,66 +342,84 @@ int starpu_push_task_end(struct starpu_task *task);
 int starpu_get_prefetch_flag(void);
 
 /**
-   Prefetch data for a given p task on a given p node with a given
+   Prefetch data for a given \p task on a given \p node with a given
    priority.
-   This must be called only by the scheduler, and only once. The
+   This must be called only by the scheduler, and only once, unless
+   starpu_prefetch_task_cancel is called to cancel the previous prefetch. The
    starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 
 /**
-   Prefetch data for a given p task on a given p node.
-   This must be called only by the scheduler, and only once. The
+   Prefetch data for a given \p task on a given \p node.
+   This must be called only by the scheduler, and only once, unless
+   starpu_prefetch_task_cancel is called to cancel the previous prefetch. The
    starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 /**
-   Prefetch data for a given p task on a given p node when the bus is
+   Prefetch data for a given \p task on a given \p node when the bus is
    idle with a given priority.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 
 /**
-   Prefetch data for a given p task on a given p node when the bus is
+   Prefetch data for a given \p task on a given \p node when the bus is
    idle.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 /**
-   Prefetch data for a given p task on a given p worker with a given
+   Prefetch data for a given \p task on a given \p worker with a given
    priority.
-   This must be called only by the scheduler, and only once. The
+   This must be called only by the scheduler, and only once, unless
+   starpu_prefetch_task_cancel_for is called to cancel the previous prefetch. The
    starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
 
 /**
-   Prefetch data for a given p task on a given p worker.
-   This must be called only by the scheduler, and only once. The
+   Prefetch data for a given \p task on a given \p worker.
+   This must be called only by the scheduler, and only once, unless
+   starpu_prefetch_task_cancel_for is called to cancel the previous prefetch. The
    starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
 
 /**
-   Prefetch data for a given p task on a given p worker when the bus
+   Prefetch data for a given \p task on a given \p worker when the bus
    is idle with a given priority.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
 
 /**
-   Prefetch data for a given p task on a given p worker when the bus
+   Prefetch data for a given \p task on a given \p worker when the bus
    is idle.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
+
+/**
+   Cancels prefetching data for a given \p task.
+   This permits to call a starpu_prefetch_task_input function again.
+   See \ref SchedulingHelpers for more details.
+*/
+int starpu_prefetch_task_cancel(struct starpu_task *task);
+
+/**
+   Cancels prefetching data for a given \p task.
+   This permits to call a starpu_prefetch_task_input_for function again.
+   See \ref SchedulingHelpers for more details.
+*/
+int starpu_prefetch_task_cancel_for(struct starpu_task *task, int worker);
 
 /**
    Return the footprint for a given task, taking into account
