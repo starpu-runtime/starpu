@@ -358,12 +358,16 @@ int starpu_get_prefetch_flag(void);
 /**
    Prefetch data for a given p task on a given p node with a given
    priority.
+   This must be called only by the scheduler, and only once. The
+   starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 
 /**
    Prefetch data for a given p task on a given p node.
+   This must be called only by the scheduler, and only once. The
+   starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
@@ -385,12 +389,16 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 /**
    Prefetch data for a given p task on a given p worker with a given
    priority.
+   This must be called only by the scheduler, and only once. The
+   starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
 
 /**
    Prefetch data for a given p task on a given p worker.
+   This must be called only by the scheduler, and only once. The
+   starpu_task::prefetched field records this.
    See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
