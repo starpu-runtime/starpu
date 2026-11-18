@@ -1163,6 +1163,68 @@ static void _starpu_fetch_task_input_cb(void *arg)
 #endif
 }
 
+int starpu_prefetch_task_cancel_for(struct starpu_task *task, int workerid)
+{
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+
+	unsigned index;
+	int indexdup;
+
+	STARPU_ASSERT(task->prefetched);
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = descrs[index].handle;
+		enum starpu_data_access_mode mode = descrs[index].mode;
+#ifdef STARPU_RECURSIVE_TASKS
+		if (_starpu_task_is_recursive(task) && !(mode & STARPU_RECURSIVE_TASK_STRONG))
+			continue;
+#endif
+		int orig_node = descrs[index].orig_node;
+		int prefetch_node = descrs[index].prefetch_node;
+
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			int node_dup = descrs[indexdup].orig_node;
+			if (handle_dup == handle && node_dup == orig_node)
+				/* We have already taken this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles */
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
+
+		if (prefetch_node >= 0)
+		{
+			struct _starpu_data_replicate *prefetch_replicate = get_replicate(handle, mode, workerid, prefetch_node);
+
+			/* The scheduler has changed its mind, we may be going to another node than what was prefetched... Unreference it. */
+			/* Note: the replicate might still have been evicted in between, thus not 100% sure
+			 * that our prefetch request is still recorded here.  */
+			if (prefetch_replicate->nb_tasks_prefetch > 0)
+			{
+				prefetch_replicate->nb_tasks_prefetch--;
+				descrs[index].prefetch_node = -1;
+			}
+		}
+	next:
+		;
+	}
+
+	task->prefetched = 0;
+	return 0;
+}
+
+int starpu_prefetch_task_cancel(struct starpu_task *task)
+{
+	return starpu_prefetch_task_cancel_for(task, -1);
+}
+
 /* Synchronously or asynchronously fetch data for a given task (if it's not there already)
  * Returns the number of data acquired here.  */
 
