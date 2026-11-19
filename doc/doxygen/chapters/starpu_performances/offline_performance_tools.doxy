@@ -701,9 +701,9 @@ histogram of the codelet execution time distribution.
 
 \section HardwareEnergyMonitoring Hardware Energy Monitoring
 
-StarPU can monitor the energy drawn by the hardware of the machine while 
+StarPU can monitor the energy drawn by the hardware of the machine while
 an application is running. This relies on the external <c>energy-reader</c>
-library (see https://gitlab.com/JulesRisse/energy-reader), which provides 
+library (see https://gitlab.com/JulesRisse/energy-reader), which provides
 a uniform interface over several hardware counter backends:
 
 - Intel/AMD <c>RAPL</c> counters (CPU package and DRAM domains), read either
@@ -726,13 +726,13 @@ default, and is enabled for a given run by setting the environment
 variable \ref STARPU_ENERGY_READER to <c>1</c>.
 
 Since backends do not all refresh their counters at the same rate, each
-family of counters has its own sampling period which can be modified 
+family of counters has its own sampling period which can be modified
 through environment variables: \ref STARPU_ENERGY_PKG_INTERVAL and \ref
 STARPU_ENERGY_CRAY_INTERVAL default to sensible values
 (RAPL counters are refreshed every 1ms internally, Cray counters every
 100ms), while \ref STARPU_ENERGY_GPU_INTERVAL is by
 default automatically computed at startup from a few probing
-measurements of the actual GPU counter refresh rate, since it varies 
+measurements of the actual GPU counter refresh rate, since it varies
 across GPU vendors and models.
 
 \subsection HardwareEnergyMonitoringOutput Collecting The Measurements

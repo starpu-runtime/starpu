@@ -542,6 +542,7 @@ profiles = [
     },
     { 'name'        : 'energyreader',
       'opts'        : ['--enable-energyreader'],
+      'prologue'    : ['.', './ci/scripts/install_energyreader.sh'],
       'deploy'      : True,
       'hosts'       : ['node_gpu']
     },

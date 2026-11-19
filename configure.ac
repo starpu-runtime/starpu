@@ -4699,13 +4699,13 @@ fi
 #                                                                             #
 ###############################################################################
 
-AC_ARG_ENABLE([energyreader], 
-  [AS_HELP_STRING([--enable-energyreader], 
-  [Enable the energyreader extension])], 
-  [enable_energyreader=$enableval], 
+AC_ARG_ENABLE([energyreader],
+  [AS_HELP_STRING([--enable-energyreader],
+  [Enable the energyreader extension])],
+  [enable_energyreader=$enableval],
   [enable_energyreader=no])
 if test "x$enable_energyreader" = "xyes"; then
-  PKG_CHECK_MODULES([ENERGYREADER], [energyreader], 
+  PKG_CHECK_MODULES([ENERGYREADER], [energyreader],
     [have_valid_energyreader=yes],
     [have_valid_energyreader=no])
   if test "x$have_valid_energyreader" = "xyes"; then

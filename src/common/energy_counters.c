@@ -366,17 +366,17 @@ void _starpu_energyreader_terminate(void)
 	}
 	if (rapl_set)
 	{
-		energy_reader_print_sample_set(rapl_set);
+		energy_reader_print_sample_set(rapl_set, ENERGY_PRINT_HEADER);
 		energy_reader_destroy_sample_set(rapl_set);
 	}
 	if (cray_set)
 	{
-		energy_reader_print_sample_set(cray_set);
+		energy_reader_print_sample_set(cray_set, ENERGY_PRINT_HEADER);
 		energy_reader_destroy_sample_set(cray_set);
 	}
 	if (gpu_set)
 	{
-		energy_reader_print_sample_set(gpu_set);
+		energy_reader_print_sample_set(gpu_set, ENERGY_PRINT_HEADER);
 		energy_reader_destroy_sample_set(gpu_set);
 	}
 	energy_reader_shutdown(context_g);
