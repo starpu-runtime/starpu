@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	}
 
 	memset(&params, 0, sizeof(params));
-	params.size_min   = 4096;
+	params.size_min   = 131072;
 	params.size_inc   = params.size_min;
 	params.size_max   = 4096 * 1024;
 	params.niter      = 16;
