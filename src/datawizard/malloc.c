@@ -808,7 +808,7 @@ void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, 
 int
 starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	if (STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (_starpu_malloc_should_pin(STARPU_MALLOC_PINNED) && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostRegister(addr, size, cudaHostRegisterPortable) != cudaSuccess)
@@ -825,7 +825,7 @@ starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBU
 int
 starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	if (STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (_starpu_malloc_should_pin(STARPU_MALLOC_PINNED) && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostUnregister(addr) != cudaSuccess)
