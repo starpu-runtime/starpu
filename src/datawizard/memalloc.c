@@ -1544,7 +1544,8 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 */
 	if (handle->ops->dontcache
 			|| (starpu_node_get_kind(node) == STARPU_CPU_RAM &&
-			    !_starpu_malloc_willpin_on_node(node))
+			    !_starpu_malloc_willpin_on_node(node) &&
+			    !handle->mpi_data)
 #ifndef STARPU_USE_ALLOCATION_CACHE
 			|| !_starpu_memory_manager_get_global_memory_size(node)
 #endif
