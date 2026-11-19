@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -86,5 +86,29 @@ Performance models are available for <c>cholesky_*</c>, <c>lu_*</c>, <c>*gemm</c
 256x256x256.
 
 Read Chapter \ref SimGridSupport for more information on the SimGrid support.
+
+\section MemoryAllocationBenchmarks Memory allocation and/or pinning benchmarks
+
+The tool <c>starpu_malloc_bench</c> measures the cost of memory allocation
+and/or pinning. Execute
+
+\verbatim
+$ tools/starpu_malloc_bench --help
+\endverbatim
+
+for further information. The program outputs the raw data for each iteration in TSV format like this
+
+\verbatim
+Index	Size	Time (us)
+0	4096	4.89e+00
+1	4096	4.41e-01
+2	4096	2.48e-0$
+...
+16381	4194304	2.68e+02
+16382	4194304	2.74e+02
+16383	4194304	2.68e+02
+\endverbatim
+
+If one needs to compute things like average, median, standard deviation, it has to be done by an external script.
 
 */

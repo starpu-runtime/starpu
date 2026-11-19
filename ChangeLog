@@ -35,6 +35,7 @@ New features:
     ROCm SMI) through the energy-reader library, enabled with
     --enable-energyreader and STARPU_ENERGY_READER=1.
   * Add starpu_data_move to efficiently move data from one handle to another.
+  * Add starpu_malloc_bench to benchmark memory allocation and/or pinning.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in

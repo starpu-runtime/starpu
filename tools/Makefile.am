@@ -393,6 +393,11 @@ bin_PROGRAMS += 			\
 	starpu_lp2paje			\
 	starpu_perfmodel_recdump
 
+if !STARPU_HAVE_WINDOWS
+bin_PROGRAMS += 			\
+	starpu_malloc_bench
+endif
+
 if STARPU_SIMGRID
 bin_PROGRAMS += 			\
 	starpu_replay
@@ -417,7 +422,8 @@ STARPU_TOOLS	+=			\
 if !STARPU_HAVE_WINDOWS
 STARPU_TOOLS	+=			\
 	starpu_perfmodel_display	\
-	starpu_perfmodel_plot
+	starpu_perfmodel_plot		\
+	starpu_malloc_bench
 endif
 
 dist_bin_SCRIPTS +=				\
@@ -498,6 +504,8 @@ starpu_paje_state_stats.1: starpu_paje_state_stats
 starpu_config.1: starpu_config
 	@chmod +x $<
 	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Display StarPU configuration" --output=$@ ./$<
+starpu_malloc_bench.1: starpu_malloc_bench$(EXEEXT)
+	$(V_help2man) LC_ALL=C help2man -N -n "Benchmark the cost of memory allocation and/or pinning" --output=$@ ./$<
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
@@ -529,7 +537,8 @@ dist_man1_MANS = \
 	starpu_fxt_number_events_to_names.1 \
 	starpu_paje_draw_histogram.1 \
 	starpu_paje_state_stats.1	\
-	starpu_config.1
+	starpu_config.1 \
+	starpu_malloc_bench.1
 
 if STARPU_USE_FXT
 dist_man1_MANS +=\
