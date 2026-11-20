@@ -119,6 +119,7 @@ if test "$suname" = "Darwin"
 then
     # the VM macos is very slow
     export STARPU_MPI_NP=2
+    STARPU_CONFIGURE_OPTIONS="--enable-blas-lib=none"
 fi
 if test "$suname" = "OpenBSD"
 then
