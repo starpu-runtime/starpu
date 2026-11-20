@@ -165,17 +165,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(&conf);
 	STARPU_ASSERT(ret == 0);
 
-	{
-		char buf[10];
-		ret = starpu_memory_pin(buf, 10);
-		if (ret < 0)
-		{
-			starpu_shutdown();
-			return 77;
-		}
-		starpu_memory_unpin(buf, 10);
-	}
-
 	if (params.alloc_only && params.pin_only)
 	{
 		fprintf(stderr,
