@@ -173,14 +173,6 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if ((!params.alloc_only) && (conf.ncuda == 0))
-	{
-		fprintf(stderr,
-			"%s: warning: running with no Cuda worker and without --alloc-only, "
-			"this does not make sense\n",
-			argv[0]);
-	}
-
 	/* number of values size can take */
 	int count = ((params.size_max - params.size_min) / params.size_inc) + 1;
 	void **ptrs = malloc(sizeof(void *) * count * params.niter);
