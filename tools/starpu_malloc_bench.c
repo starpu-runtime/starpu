@@ -150,6 +150,15 @@ int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
 	int ret;
+
+	memset(&params, 0, sizeof(params));
+	params.size_min   = 131072;
+	params.size_inc   = params.size_min;
+	params.size_max   = 4096 * 1024;
+	params.niter      = 16;
+
+	parse_args(argc, argv);
+
 	starpu_conf_init(&conf);
 	conf.ncpus = 1;
 	conf.ncuda = 1;
@@ -166,14 +175,6 @@ int main(int argc, char **argv)
 		}
 		starpu_memory_unpin(buf, 10);
 	}
-
-	memset(&params, 0, sizeof(params));
-	params.size_min   = 131072;
-	params.size_inc   = params.size_min;
-	params.size_max   = 4096 * 1024;
-	params.niter      = 16;
-
-	parse_args(argc, argv);
 
 	if (params.alloc_only && params.pin_only)
 	{
