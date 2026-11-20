@@ -157,7 +157,7 @@ static int test_memset(int nelems, struct starpu_codelet *codelet)
 	}
 
 	starpu_do_schedule();
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	return 0;
 }
 
@@ -195,7 +195,7 @@ static int test_memset_energy(int nelems, int workerid, int where, enum starpu_w
 	}
 
 	starpu_do_schedule();
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	return nloops;
 }
@@ -213,7 +213,7 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 
 		if ((retval = starpu_energy_start(workerid, archtype)) != 0)
 		{
-			starpu_data_unregister(handle);
+			starpu_data_unregister_no_coherency(handle);
 			_STARPU_DISP("Energy measurement not supported for archtype %s\n", starpu_perfmodel_get_archtype_name(archtype));
 			return -1;
 		}
@@ -231,7 +231,7 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 		retval = starpu_energy_stop(codelet->energy_model, task, impl, ntasks, workerid, archtype);
 
 		starpu_task_destroy(task);
-		starpu_data_unregister(handle);
+		starpu_data_unregister_no_coherency(handle);
 
 		if (retval != 0)
 			ERROR_RETURN(retval);
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
 
 	starpu_task_destroy(task);
 
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 #ifdef STARPU_USE_OPENCL
 	ret = starpu_opencl_unload_opencl(&opencl_program);

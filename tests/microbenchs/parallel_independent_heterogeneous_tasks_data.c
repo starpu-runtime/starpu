@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 	end_time = starpu_timing_now();
 
 	for (j = 0; j < nb_tasks; j++)
-		starpu_data_unregister(vector_handle[j]);
+		starpu_data_unregister_no_coherency(vector_handle[j]);
 
 	time_m = (end_time - begin_time)/SECONDS_SCALE_COEFFICIENT_TIMING_NOW; //pour ramener en secondes
 	time_s = nb_tasks * TIME;

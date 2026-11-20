@@ -141,13 +141,13 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 	/* this should get rid of automatically allocated buffers */
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

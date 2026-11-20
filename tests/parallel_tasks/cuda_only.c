@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	starpu_shutdown();
 
 	STARPU_RETURN(EXIT_SUCCESS);
@@ -106,7 +106,7 @@ int main(void)
 enodev:
 	task->destroy = 0;
 	starpu_task_destroy(task);
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	/* yes, we do not perform the computation but we did detect that no one
 	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();

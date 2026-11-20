@@ -94,10 +94,10 @@ int main(int argc, char **argv)
 	ret = starpu_task_insert(&increment_cl, STARPU_RW, var1_handle, 0);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(var1_handle);
-		starpu_data_unregister(var2_handle);
-		starpu_data_unregister(var3_handle);
-		starpu_data_unregister(var4_handle);
+		starpu_data_unregister_no_coherency(var1_handle);
+		starpu_data_unregister_no_coherency(var2_handle);
+		starpu_data_unregister_no_coherency(var3_handle);
+		starpu_data_unregister_no_coherency(var4_handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -131,12 +131,12 @@ int main(int argc, char **argv)
 	check_value("var5", var5_handle, 43);
 	check_value("var6", var6_handle, 44);
 
-	starpu_data_unregister(var1_handle);
-	starpu_data_unregister(var2_handle);
-	starpu_data_unregister(var3_handle);
-	starpu_data_unregister(var4_handle);
-	starpu_data_unregister(var5_handle);
-	starpu_data_unregister(var6_handle);
+	starpu_data_unregister_no_coherency(var1_handle);
+	starpu_data_unregister_no_coherency(var2_handle);
+	starpu_data_unregister_no_coherency(var3_handle);
+	starpu_data_unregister_no_coherency(var4_handle);
+	starpu_data_unregister_no_coherency(var5_handle);
+	starpu_data_unregister_no_coherency(var6_handle);
 
 	increment_unload_opencl();
 

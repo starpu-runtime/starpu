@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_insert(&memset_cl, STARPU_W, v_handle, 0);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(v_handle);
+		starpu_data_unregister_no_coherency(v_handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_shutdown();
 	return EXIT_SUCCESS;
 }

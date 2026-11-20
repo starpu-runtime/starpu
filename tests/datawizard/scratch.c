@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -144,8 +144,8 @@ int main(int argc, char **argv)
 	STARPU_RETURN(ret);
 
 enodev:
-	starpu_data_unregister(A_handle);
-	starpu_data_unregister(B_handle);
+	starpu_data_unregister_no_coherency(A_handle);
+	starpu_data_unregister_no_coherency(B_handle);
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");

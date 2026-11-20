@@ -82,9 +82,9 @@ int main()
 		ret = STARPU_TEST_SKIPPED;
 	else
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	starpu_data_unregister(A);
-	starpu_data_unregister(U);
-	starpu_data_unregister(V);
+	starpu_data_unregister_no_coherency(A);
+	starpu_data_unregister_no_coherency(U);
+	starpu_data_unregister_no_coherency(V);
 
 	free(pU);
 	free(pV);

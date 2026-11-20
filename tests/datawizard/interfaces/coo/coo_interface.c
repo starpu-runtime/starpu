@@ -141,8 +141,8 @@ register_data(void)
 static void
 unregister_data(void)
 {
-	starpu_data_unregister(coo_handle);
-	starpu_data_unregister(coo2_handle);
+	starpu_data_unregister_no_coherency(coo_handle);
+	starpu_data_unregister_no_coherency(coo2_handle);
 }
 
 int

@@ -99,7 +99,7 @@ static int test_memset(int nelems)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	return 0;
 }
 

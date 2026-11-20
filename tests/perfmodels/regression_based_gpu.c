@@ -150,7 +150,7 @@ static int test_memset(int nelems, struct starpu_codelet *codelet)
 	}
 
 	starpu_do_schedule();
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	return 0;
 }
 
@@ -192,7 +192,7 @@ static void compare_performance(int size, struct starpu_codelet *codelet, struct
 		}
 	}
 
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	starpu_task_wait_for_all();
 
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
 
 	starpu_task_destroy(task);
 
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 #ifdef STARPU_USE_OPENCL
 	ret = starpu_opencl_unload_opencl(&opencl_program);

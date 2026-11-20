@@ -79,14 +79,14 @@ int main(void)
 	ret = starpu_task_submit(taskB);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(handle);
+		starpu_data_unregister_no_coherency(handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 	ret = starpu_task_submit(taskA);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(handle);
+		starpu_data_unregister_no_coherency(handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -94,7 +94,7 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	starpu_shutdown();
 

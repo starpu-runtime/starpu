@@ -104,10 +104,10 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(starpu_data_get_local_ptr(var2_handle) == var_orig);
 	starpu_data_release(var2_handle);
 
-	starpu_data_unregister(var1_handle);
-	starpu_data_unregister(var2_handle);
-	starpu_data_unregister(var3_handle);
-	starpu_data_unregister(var4_handle);
+	starpu_data_unregister_no_coherency(var1_handle);
+	starpu_data_unregister_no_coherency(var2_handle);
+	starpu_data_unregister_no_coherency(var3_handle);
+	starpu_data_unregister_no_coherency(var4_handle);
 
 	starpu_shutdown();
 

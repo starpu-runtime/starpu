@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -215,19 +215,19 @@ int main(void)
 	}
 	starpu_data_release(handle4);
 
-	starpu_data_unregister(handle1);
-	starpu_data_unregister(handle2);
-	starpu_data_unregister(handle3);
-	starpu_data_unregister(handle4);
+	starpu_data_unregister_no_coherency(handle1);
+	starpu_data_unregister_no_coherency(handle2);
+	starpu_data_unregister_no_coherency(handle3);
+	starpu_data_unregister_no_coherency(handle4);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_data_unregister(handle1);
-	starpu_data_unregister(handle2);
-	starpu_data_unregister(handle3);
-	starpu_data_unregister(handle4);
+	starpu_data_unregister_no_coherency(handle1);
+	starpu_data_unregister_no_coherency(handle2);
+	starpu_data_unregister_no_coherency(handle3);
+	starpu_data_unregister_no_coherency(handle4);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
@@ -235,10 +235,10 @@ enodev:
 	return STARPU_TEST_SKIPPED;
 
 err:
-	starpu_data_unregister(handle1);
-	starpu_data_unregister(handle2);
-	starpu_data_unregister(handle3);
-	starpu_data_unregister(handle4);
+	starpu_data_unregister_no_coherency(handle1);
+	starpu_data_unregister_no_coherency(handle2);
+	starpu_data_unregister_no_coherency(handle3);
+	starpu_data_unregister_no_coherency(handle4);
 	starpu_shutdown();
 	return EXIT_FAILURE;
 }

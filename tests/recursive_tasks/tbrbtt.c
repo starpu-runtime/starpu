@@ -171,8 +171,8 @@ int main(int argv, char **argc)
 	starpu_data_partition_clean(subA[0], NPARTS, subA0);
 	starpu_data_partition_clean(subA[1], NPARTS, subA1);
 	starpu_data_partition_clean(A, NPARTS, subA);
-	starpu_data_unregister(A);
-	starpu_data_unregister(B);
+	starpu_data_unregister_no_coherency(A);
+	starpu_data_unregister_no_coherency(B);
 	starpu_shutdown();
 
 	return 0;

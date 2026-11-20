@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -138,7 +138,7 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	free(forced_workerids);
 	starpu_shutdown();
@@ -146,7 +146,7 @@ int main(void)
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	free(forced_workerids);
 	fprintf(stderr, "WARNING: No one can execute the task on workerid %u\n", combined_workerid);

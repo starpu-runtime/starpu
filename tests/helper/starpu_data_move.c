@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_insert(&neutral_cl, STARPU_W, var1_handle, 0);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(var1_handle);
+		starpu_data_unregister_no_coherency(var1_handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_insert(&increment_cl, STARPU_RW, var1_handle, 0);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(var1_handle);
+		starpu_data_unregister_no_coherency(var1_handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -141,9 +141,9 @@ int main(int argc, char **argv)
 	/* Check that it is correct */
 	check_value("var3", var3_handle, 3);
 
-	starpu_data_unregister(var1_handle);
-	starpu_data_unregister(var2_handle);
-	starpu_data_unregister(var3_handle);
+	starpu_data_unregister_no_coherency(var1_handle);
+	starpu_data_unregister_no_coherency(var2_handle);
+	starpu_data_unregister_no_coherency(var3_handle);
 
 	increment_unload_opencl();
 

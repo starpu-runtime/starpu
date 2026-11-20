@@ -133,11 +133,11 @@ enodev:
 realend:
 	for (i = 0; i < STARPU_NMAXBUFS; i++)
 	{
-		starpu_data_unregister(data_handle[i]);
+		starpu_data_unregister_no_coherency(data_handle[i]);
 	}
 	for (i = 0; i < STARPU_NMAXBUFS*2; i++)
 	{
-		starpu_data_unregister(dyn_data_handle[i]);
+		starpu_data_unregister_no_coherency(dyn_data_handle[i]);
 	}
 	starpu_shutdown();
 	free(descrs);

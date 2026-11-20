@@ -188,7 +188,7 @@ int main(void)
 	return ret;
 
 enodev:
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

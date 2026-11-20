@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 
 	for (m = 0; m < N; m++)
 		for (n = 0; n < N; n++)
-			starpu_data_unregister(A[m][n]);
+			starpu_data_unregister_no_coherency(A[m][n]);
 
 	starpu_shutdown();
 	return 0;

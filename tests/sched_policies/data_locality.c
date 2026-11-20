@@ -82,7 +82,7 @@ init_data(void)
 static void
 free_data(void)
 {
-	starpu_data_unregister(rw_handle);
+	starpu_data_unregister_no_coherency(rw_handle);
 }
 
 static int

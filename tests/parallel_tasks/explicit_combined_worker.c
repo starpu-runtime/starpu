@@ -104,14 +104,14 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_data_unregister(v_handle);
+	starpu_data_unregister_no_coherency(v_handle);
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	fprintf(stderr, "WARNING: No one can execute the task on workerid %u\n", worker);
 	/* yes, we do not perform the computation but we did detect that no one

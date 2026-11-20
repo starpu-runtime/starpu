@@ -116,7 +116,7 @@ int test_prefetch(unsigned memnodes)
 
 	for(i=0 ; i<4 ; i++)
 	{
-		starpu_data_unregister(handles[i]);
+		starpu_data_unregister_no_coherency(handles[i]);
 		free(buffers[i]);
 	}
 
@@ -136,7 +136,7 @@ int test_prefetch(unsigned memnodes)
 		}
 		for(j=0 ; j<4 ; j++)
 		{
-			starpu_data_unregister(handles[j]);
+			starpu_data_unregister_no_coherency(handles[j]);
 		}
 	}
 
@@ -151,7 +151,7 @@ int test_prefetch(unsigned memnodes)
 		}
 		for(j=0 ; j<4 ; j++)
 		{
-			starpu_data_unregister(handles[j]);
+			starpu_data_unregister_no_coherency(handles[j]);
 		}
 	}
 

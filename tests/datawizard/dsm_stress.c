@@ -248,8 +248,8 @@ int main(int argc, char **argv)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	starpu_data_unregister(v_handle);
-	starpu_data_unregister(v_handle2);
+	starpu_data_unregister_no_coherency(v_handle);
+	starpu_data_unregister_no_coherency(v_handle2);
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	starpu_free_noflag(v2, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
@@ -257,8 +257,8 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_data_unregister(v_handle);
-	starpu_data_unregister(v_handle2);
+	starpu_data_unregister_no_coherency(v_handle);
+	starpu_data_unregister_no_coherency(v_handle2);
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	starpu_free_noflag(v2, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();

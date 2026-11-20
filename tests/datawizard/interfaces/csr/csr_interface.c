@@ -110,8 +110,8 @@ register_data(void)
 static void
 unregister_data(void)
 {
-	starpu_data_unregister(csr_handle);
-	starpu_data_unregister(csr2_handle);
+	starpu_data_unregister_no_coherency(csr_handle);
+	starpu_data_unregister_no_coherency(csr2_handle);
 }
 
 void

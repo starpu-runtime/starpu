@@ -351,7 +351,7 @@ int main(void)
 
 	for (x = 0; x < N; x++)
 		for (y = 0; y < N; y++)
-			starpu_data_unregister(handles[x][y]);
+			starpu_data_unregister_no_coherency(handles[x][y]);
 
 	starpu_shutdown();
 
@@ -360,7 +360,7 @@ int main(void)
 enodev:
 	for (x = 0; x < N; x++)
 		for (y = 0; y < N; y++)
-			starpu_data_unregister(handles[x][y]);
+			starpu_data_unregister_no_coherency(handles[x][y]);
 
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

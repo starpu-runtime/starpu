@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 	for (f1 = 0; f1 < N; f1++)
 	for (f2 = 0; f2 < N; f2++)
 	{
-		starpu_data_unregister(fork_handles[f1][f2]);
+		starpu_data_unregister_no_coherency(fork_handles[f1][f2]);
 	}
 
 	starpu_shutdown();
@@ -120,7 +120,7 @@ enodev:
 	for (f1 = 0; f1 < N; f1++)
 	for (f2 = 0; f2 < N; f2++)
 	{
-		starpu_data_unregister(fork_handles[f1][f2]);
+		starpu_data_unregister_no_coherency(fork_handles[f1][f2]);
 	}
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

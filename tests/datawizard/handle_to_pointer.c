@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -119,15 +119,15 @@ int main(int argc, char *argv[])
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count, count, 1, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	starpu_free_noflag(pointer, count * sizeof(int));
 	pointer = NULL;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	starpu_data_release(handle);
 
 out:
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 
 	starpu_shutdown();
 

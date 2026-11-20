@@ -120,8 +120,8 @@ register_data(void)
 static void
 unregister_data(void)
 {
-	starpu_data_unregister(bcsr_handle);
-	starpu_data_unregister(bcsr2_handle);
+	starpu_data_unregister_no_coherency(bcsr_handle);
+	starpu_data_unregister_no_coherency(bcsr2_handle);
 }
 
 void

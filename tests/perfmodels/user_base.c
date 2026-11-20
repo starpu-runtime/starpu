@@ -106,13 +106,13 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 		ret = starpu_task_insert(codelet, STARPU_W, handle, 0);
 		if (ret == -ENODEV)
 		{
-			starpu_data_unregister(handle);
+			starpu_data_unregister_no_coherency(handle);
 			starpu_shutdown();
 			return STARPU_TEST_SKIPPED;
 		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
-	starpu_data_unregister(handle);
+	starpu_data_unregister_no_coherency(handle);
 	starpu_shutdown();
 	return EXIT_SUCCESS;
 }

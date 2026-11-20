@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_insert(&show_cl, STARPU_R, bcsr_handle, 0);
 	if (ret == -ENODEV)
 	{
-		starpu_data_unregister(bcsr_handle);
+		starpu_data_unregister_no_coherency(bcsr_handle);
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 
 	starpu_data_unpartition(bcsr_handle, STARPU_MAIN_RAM);
 
-	starpu_data_unregister(bcsr_handle);
+	starpu_data_unregister_no_coherency(bcsr_handle);
 
 	starpu_shutdown();
 

@@ -256,7 +256,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 		ret = starpu_task_insert(&check_cl, STARPU_R, handles[i], STARPU_VALUE, &i, sizeof(i), 0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-		starpu_data_unregister(handles[i]);
+		starpu_data_unregister_no_coherency(handles[i]);
 	}
 
 	/* terminate StarPU, no task can be submitted after */

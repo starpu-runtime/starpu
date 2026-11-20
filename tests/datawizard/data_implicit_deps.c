@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -238,12 +238,12 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unregister(A_handle);
-	starpu_data_unregister(B_handle);
-	starpu_data_unregister(C_handle);
-	starpu_data_unregister(D_handle);
+	starpu_data_unregister_no_coherency(A_handle);
+	starpu_data_unregister_no_coherency(B_handle);
+	starpu_data_unregister_no_coherency(C_handle);
+	starpu_data_unregister_no_coherency(D_handle);
 
-	starpu_data_unregister(var_handle);
+	starpu_data_unregister_no_coherency(var_handle);
 
 	starpu_free_noflag(A, VECTORSIZE*sizeof(unsigned));
 	starpu_free_noflag(B, VECTORSIZE*sizeof(unsigned));
@@ -255,12 +255,12 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_data_unregister(A_handle);
-	starpu_data_unregister(B_handle);
-	starpu_data_unregister(C_handle);
-	starpu_data_unregister(D_handle);
+	starpu_data_unregister_no_coherency(A_handle);
+	starpu_data_unregister_no_coherency(B_handle);
+	starpu_data_unregister_no_coherency(C_handle);
+	starpu_data_unregister_no_coherency(D_handle);
 
-	starpu_data_unregister(var_handle);
+	starpu_data_unregister_no_coherency(var_handle);
 
 	starpu_free_noflag(A, VECTORSIZE*sizeof(unsigned));
 	starpu_free_noflag(B, VECTORSIZE*sizeof(unsigned));
