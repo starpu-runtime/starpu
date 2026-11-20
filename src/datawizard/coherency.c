@@ -1249,9 +1249,6 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 			(mode >> STARPU_MODE_SHIFT) >= (STARPU_SHIFTED_MODE_MAX >> STARPU_MODE_SHIFT))
 			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 
-		if (node < 0)
-			continue;
-
 		if (prefetch_node >= 0 && node != prefetch_node)
 		{
 			STARPU_ASSERT(task->prefetched);
@@ -1268,6 +1265,9 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 			}
 			_starpu_spin_unlock(&handle->header_lock);
 		}
+
+		if (node < 0)
+			continue;
 
 		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
 		{
@@ -1387,17 +1387,16 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		int node = descrs[index].node;
 		int prefetch_node = descrs[index].prefetch_node;
 
-		if (node < 0)
-			continue;
-
-		struct _starpu_data_replicate *local_replicate;
+		struct _starpu_data_replicate *local_replicate = NULL;
 		struct _starpu_data_replicate *prefetched_replicate = NULL;
-		int needs_init;
 
-		local_replicate = get_replicate(handle, mode, workerid, node);
+		if (node >= 0)
+			local_replicate = get_replicate(handle, mode, workerid, node);
 		if (prefetch_node >= 0)
 			prefetched_replicate = get_replicate(handle, mode, workerid, prefetch_node);
+
 		_starpu_spin_lock(&handle->header_lock);
+
 		if (prefetched_replicate && prefetched_replicate->mc)
 		{
 			/* Allocations or transfer prefetches should have been done by now and marked
@@ -1408,6 +1407,13 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 			if (prefetched_replicate->nb_tasks_prefetch > 0)
 				prefetched_replicate->nb_tasks_prefetch--;
 		}
+
+		if (node < 0)
+		{
+			_starpu_spin_unlock(&handle->header_lock);
+			continue;
+		}
+
 		if (!(mode & STARPU_R) && (mode & STARPU_W))
 		{
 			/* The task will be initializing it. Possibly we have
@@ -1417,6 +1423,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 			_starpu_update_data_state(handle, local_replicate, mode);
 		}
 
+		int needs_init;
 		needs_init = !local_replicate->initialized;
 		_starpu_spin_unlock(&handle->header_lock);
 
