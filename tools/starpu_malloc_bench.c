@@ -173,9 +173,6 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	/* number of values size can take */
-	int count = ((params.size_max - params.size_min) / params.size_inc) + 1;
-	void **ptrs = malloc(sizeof(void *) * count * params.niter);
 	int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 	if (!params.manual_prefault)
 		mmap_flags |= MAP_POPULATE;
@@ -187,6 +184,7 @@ int main(int argc, char **argv)
 	struct timespec t2;
 	double dt;
 	int index;
+	void *ptr;
 
 	printf("Index\tSize\tTime (us)\n");
 
@@ -199,19 +197,19 @@ int main(int argc, char **argv)
 
 			_starpu_clock_gettime(&t0);
 
-			ptrs[index] = mmap(NULL,
-					   size,
-					   PROT_READ | PROT_WRITE,
-					   mmap_flags,
-					   -1,
-					   0);
-			STARPU_ASSERT(ptrs[index] != MAP_FAILED);
+			ptr = mmap(NULL,
+				   size,
+				   PROT_READ | PROT_WRITE,
+				   mmap_flags,
+				   -1,
+				   0);
+			STARPU_ASSERT(ptr != MAP_FAILED);
 			if (params.manual_prefault)
-				prefault(ptrs[index], size);
+				prefault(ptr, size);
 
 			_starpu_clock_gettime(&t1);
 
-			ret = starpu_memory_pin(ptrs[index], size);
+			ret = starpu_memory_pin(ptr, size);
 
 			_starpu_clock_gettime(&t2);
 
@@ -225,15 +223,14 @@ int main(int argc, char **argv)
 
 			printf("%d\t%zu\t%.2e\n", index, size, dt);
 
-			ret = starpu_memory_unpin(ptrs[index], size);
+			ret = starpu_memory_unpin(ptr, size);
 			STARPU_ASSERT(ret == 0);
-			ret = munmap(ptrs[index], size);
+			ret = munmap(ptr, size);
 			STARPU_ASSERT(ret == 0);
 		}
 		c++;
 	}
 
-	free(ptrs);
 	starpu_shutdown();
 	return EXIT_SUCCESS;
 }
