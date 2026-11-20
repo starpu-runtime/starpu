@@ -1159,7 +1159,6 @@ int starpu_prefetch_task_cancel_for(struct starpu_task *task, int workerid)
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	unsigned index;
-	int indexdup;
 
 	STARPU_ASSERT(task->prefetched);
 
@@ -1171,22 +1170,7 @@ int starpu_prefetch_task_cancel_for(struct starpu_task *task, int workerid)
 		if (_starpu_task_is_recursive(task) && !(mode & STARPU_RECURSIVE_TASK_STRONG))
 			continue;
 #endif
-		int orig_node = descrs[index].orig_node;
 		int prefetch_node = descrs[index].prefetch_node;
-
-		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
-		{
-			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			int node_dup = descrs[indexdup].orig_node;
-			if (handle_dup == handle && node_dup == orig_node)
-				/* We have already taken this data, skip it. This
-				 * depends on ordering putting writes before reads, see
-				 * _starpu_compar_handles */
-				goto next;
-			if (!_starpu_handles_same_root(handle_dup, handle))
-				/* We are not checking within the same parent any more, no need to continue checking other handles */
-				break;
-		}
 
 		if (prefetch_node >= 0)
 		{
@@ -1201,8 +1185,6 @@ int starpu_prefetch_task_cancel_for(struct starpu_task *task, int workerid)
 				descrs[index].prefetch_node = -1;
 			}
 		}
-	next:
-		;
 	}
 
 	task->prefetched = 0;
@@ -1270,22 +1252,6 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 		if (node < 0)
 			continue;
 
-		struct _starpu_data_replicate *local_replicate;
-
-		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
-		{
-			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			int node_dup = descrs[indexdup].orig_node;
-			if (handle_dup == handle && node_dup == orig_node)
-				/* We have already taken this data, skip it. This
-				 * depends on ordering putting writes before reads, see
-				 * _starpu_compar_handles */
-				goto next;
-			if (!_starpu_handles_same_root(handle_dup, handle))
-				/* We are not checking within the same parent any more, no need to continue checking other handles */
-				break;
-		}
-
 		if (prefetch_node >= 0 && node != prefetch_node)
 		{
 			STARPU_ASSERT(task->prefetched);
@@ -1301,6 +1267,21 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 			}
 		}
 
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			int node_dup = descrs[indexdup].orig_node;
+			if (handle_dup == handle && node_dup == orig_node)
+				/* We have already taken this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles */
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
+
+		struct _starpu_data_replicate *local_replicate;
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		if (async)
