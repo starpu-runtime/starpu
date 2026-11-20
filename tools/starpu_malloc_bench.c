@@ -40,6 +40,7 @@ struct params
 	int huge_pages;
 	int manual_prefault;
 	int mmap_flags;
+	int starpu_malloc;
 };
 
 static struct params params;
@@ -62,6 +63,9 @@ static void usage(void)
 	printf("      --size-min    SIZE   set minimum size to SIZE (default %zu)\n", params.size_min);
 	printf("      --size-inc    SIZE   set size increment to SIZE (default %zu)\n", params.size_inc);
 	printf("      --size-max    SIZE   set maximum size to SIZE (default %zu)\n", params.size_max);
+	printf("      --starpu_malloc      use the `starpu_malloc' function for allocating (and pinning\n");
+	printf("                           if any GPU worker is available) memory, incompatible with\n");
+	printf("                           --alloc-only, --huge-pages, and --pin-only\n");
 	printf("      --version            print version\n");
 	printf("Notes:\n");
 	printf("- Multiple GPUs mess up the benchmark. If not set externally, this\n");
@@ -122,6 +126,11 @@ static void parse_args(int argc, char **argv)
 			params.size_max = atol(argv[i+1]);
 			i += 2;
 		}
+		else if (strcmp(argv[i], "--starpu-malloc") == 0)
+		{
+			params.starpu_malloc = 1;
+			i += 1;
+		}
 		else if (strcmp(argv[i], "--version") == 0)
 		{
 			printf("%s (%s) %s\n", PROGNAME, PACKAGE_NAME, PACKAGE_VERSION);
@@ -147,7 +156,8 @@ static void prefault(void *_ptr, size_t size)
 		*i = '\0';
 }
 
-static void bench_size_index(size_t size, int index)
+/* Implementation of bench_size_index using mmap(2) and starpu_memory pin. */
+static void bench_size_index_starpu_memory_pin(size_t size, int index)
 {
 	struct timespec t0;
 	struct timespec t1;
@@ -190,6 +200,42 @@ static void bench_size_index(size_t size, int index)
 	STARPU_ASSERT(ret == 0);
 }
 
+/* Implementation of bench_size_index using starpu_malloc. */
+static void bench_size_index_starpu_malloc(size_t size, int index)
+{
+	struct timespec t0;
+	struct timespec t1;
+	int ret;
+	double dt;
+	void *ptr;
+
+	_starpu_clock_gettime(&t0);
+
+	ret = starpu_malloc(&ptr, size);
+	STARPU_ASSERT(ret == 0);
+
+	if (params.manual_prefault)
+		prefault(ptr, size);
+
+	_starpu_clock_gettime(&t1);
+
+	dt = starpu_timing_timespec_delay_us(&t0, &t1);
+
+	printf("%d\t%zu\t%.2e\n", index, size, dt);
+
+	ret = starpu_free_noflag(ptr, size);
+	STARPU_ASSERT(ret == 0);
+}
+
+/* Perform one iteration of the benchmark. */
+static void bench_size_index(size_t size, int index)
+{
+	if (params.starpu_malloc)
+		bench_size_index_starpu_malloc(size, index);
+	else
+		bench_size_index_starpu_memory_pin(size, index);
+}
+
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
@@ -216,6 +262,17 @@ int main(int argc, char **argv)
 			"%s: error: options --alloc-only and --pin-only both given\n",
 			argv[0]);
 		exit(EXIT_FAILURE);
+	}
+
+	if (params.starpu_malloc)
+	{
+		if (params.alloc_only || params.huge_pages || params.pin_only)
+		{
+			fprintf(stderr,
+				"%s: error: option incompatible with --starpu-malloc was given\n",
+				argv[0]);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if (!params.manual_prefault)
