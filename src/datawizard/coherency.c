@@ -1257,6 +1257,7 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 			STARPU_ASSERT(task->prefetched);
 			struct _starpu_data_replicate *prefetch_replicate = get_replicate(handle, mode, workerid, prefetch_node);
 
+			_starpu_spin_lock(&handle->header_lock);
 			/* The scheduler has changed its mind, we are going to another node than what was prefetched... Unreference it. */
 			/* Note: the replicate might still have been evicted in between, thus not 100% sure
 			 * that our prefetch request is still recorded here.  */
@@ -1265,6 +1266,7 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 				prefetch_replicate->nb_tasks_prefetch--;
 				descrs[index].prefetch_node = -1;
 			}
+			_starpu_spin_unlock(&handle->header_lock);
 		}
 
 		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
