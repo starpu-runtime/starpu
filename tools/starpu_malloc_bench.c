@@ -39,6 +39,7 @@ struct params
 	int alloc_only;
 	int huge_pages;
 	int manual_prefault;
+	int mmap_flags;
 };
 
 static struct params params;
@@ -146,6 +147,49 @@ static void prefault(void *_ptr, size_t size)
 		*i = '\0';
 }
 
+static void bench_size_index(size_t size, int index)
+{
+	struct timespec t0;
+	struct timespec t1;
+	struct timespec t2;
+	int ret;
+	double dt;
+	void *ptr;
+
+	_starpu_clock_gettime(&t0);
+
+	ptr = mmap(NULL,
+		   size,
+		   PROT_READ | PROT_WRITE,
+		   params.mmap_flags,
+		   -1,
+		   0);
+	STARPU_ASSERT(ptr != MAP_FAILED);
+	if (params.manual_prefault)
+		prefault(ptr, size);
+
+	_starpu_clock_gettime(&t1);
+
+	ret = starpu_memory_pin(ptr, size);
+
+	_starpu_clock_gettime(&t2);
+
+	STARPU_ASSERT(ret == 0);
+	if (params.alloc_only)
+		dt = starpu_timing_timespec_delay_us(&t0, &t1);
+	else if (params.pin_only)
+		dt = starpu_timing_timespec_delay_us(&t1, &t2);
+	else
+		dt = starpu_timing_timespec_delay_us(&t0, &t2);
+
+	printf("%d\t%zu\t%.2e\n", index, size, dt);
+
+	ret = starpu_memory_unpin(ptr, size);
+	STARPU_ASSERT(ret == 0);
+	ret = munmap(ptr, size);
+	STARPU_ASSERT(ret == 0);
+}
+
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
@@ -156,6 +200,7 @@ int main(int argc, char **argv)
 	params.size_inc   = params.size_min;
 	params.size_max   = 4096 * 1024;
 	params.niter      = 16;
+	params.mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 
 	parse_args(argc, argv);
 
@@ -173,18 +218,10 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 	if (!params.manual_prefault)
-		mmap_flags |= MAP_POPULATE;
+		params.mmap_flags |= MAP_POPULATE;
 	if (params.huge_pages)
-		mmap_flags |= MAP_HUGETLB | MAP_HUGE_2MB;
-
-	struct timespec t0;
-	struct timespec t1;
-	struct timespec t2;
-	double dt;
-	int index;
-	void *ptr;
+		params.mmap_flags |= MAP_HUGETLB | MAP_HUGE_2MB;
 
 	printf("Index\tSize\tTime (us)\n");
 
@@ -193,40 +230,8 @@ int main(int argc, char **argv)
 	{
 		for (int i = 0; i < params.niter; i++)
 		{
-			index = c*params.niter + i;
-
-			_starpu_clock_gettime(&t0);
-
-			ptr = mmap(NULL,
-				   size,
-				   PROT_READ | PROT_WRITE,
-				   mmap_flags,
-				   -1,
-				   0);
-			STARPU_ASSERT(ptr != MAP_FAILED);
-			if (params.manual_prefault)
-				prefault(ptr, size);
-
-			_starpu_clock_gettime(&t1);
-
-			ret = starpu_memory_pin(ptr, size);
-
-			_starpu_clock_gettime(&t2);
-
-			STARPU_ASSERT(ret == 0);
-			if (params.alloc_only)
-				dt = starpu_timing_timespec_delay_us(&t0, &t1);
-			else if (params.pin_only)
-				dt = starpu_timing_timespec_delay_us(&t1, &t2);
-			else
-				dt = starpu_timing_timespec_delay_us(&t0, &t2);
-
-			printf("%d\t%zu\t%.2e\n", index, size, dt);
-
-			ret = starpu_memory_unpin(ptr, size);
-			STARPU_ASSERT(ret == 0);
-			ret = munmap(ptr, size);
-			STARPU_ASSERT(ret == 0);
+			int index = c*params.niter + i;
+			bench_size_index(size, index);
 		}
 		c++;
 	}
