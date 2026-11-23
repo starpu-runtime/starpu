@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -112,21 +112,29 @@ int test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *co
 	if (rank == 0)
 	{
 		if (strcmp(enabled, "1") == 0)
-			/* 0 should be caching handle 1 */
+		{
+			/* 0 should already have handle 0 and be caching handle 1 */
 			STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == NB_ELEMENTS * sizeof(unsigned));
+			STARPU_ASSERT((starpu_data_test_if_allocated_on_node(data_handles[0], STARPU_MAIN_RAM)));
+			STARPU_ASSERT((starpu_data_test_if_allocated_on_node(data_handles[1], STARPU_MAIN_RAM)));
+		}
 	}
 	else
-		/* 1 shouldn't be caching anything */
+	{
+		/* 1 shouldn't be caching anything, only have handle 1 */
 		STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == 0);
+		STARPU_ASSERT(!(starpu_data_test_if_allocated_on_node(data_handles[0], STARPU_MAIN_RAM)));
+		STARPU_ASSERT((starpu_data_test_if_allocated_on_node(data_handles[1], STARPU_MAIN_RAM)));
+	}
 
 	// Flush the cache for data_handles[1] which has been sent from node1 to node0
 	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[1]);
 
 	starpu_task_wait_for_all();
 
-	if (!_starpu_malloc_willpin_on_node(STARPU_MAIN_RAM))
-		/* 0's cache should be flushed now too, and without GPUs we will have completely freed the buffer */
-		STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == 0);
+	/* 0's cache should be flushed now too */
+	STARPU_ASSERT((starpu_data_test_if_allocated_on_node(data_handles[0], STARPU_MAIN_RAM)) == (rank == 0));
+	STARPU_ASSERT((starpu_data_test_if_allocated_on_node(data_handles[1], STARPU_MAIN_RAM)) == (rank == 1));
 
 	// Check again
 	for(i = 0; i < NB_DATA; i++)
