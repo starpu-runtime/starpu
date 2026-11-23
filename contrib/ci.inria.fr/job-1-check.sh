@@ -93,6 +93,7 @@ if test "$suname" = "Darwin"
 then
     # the VM macos is very slow
     export STARPU_MPI_NP=2
+    export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 fi
 if test "$suname" = "OpenBSD"
 then
