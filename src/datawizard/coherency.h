@@ -107,6 +107,9 @@ struct _starpu_data_replicate
 	 * This is also the number of tasks that we will wait to see use the mc before
 	 * we attempt to evict it. We have to make sure we decrement it on task
 	 * termination, otherwise the data would stay allocated.
+	 *
+	 * More formally, it is the number of tasks for which
+	 * _starpu_prefetch_task_input_prio triggered a non-idle prefetch
 	 */
 	unsigned nb_tasks_prefetch;
 
