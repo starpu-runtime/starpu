@@ -119,7 +119,7 @@ int test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *co
 			STARPU_ASSERT((starpu_data_test_if_allocated_on_node(data_handles[1], STARPU_MAIN_RAM)));
 		}
 	}
-	else
+	else if (rank == 1)
 	{
 		/* 1 shouldn't be caching anything, only have handle 1 */
 		STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == 0);
