@@ -593,14 +593,12 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
-			if (dst_replicate->mc)
-			{
-				if (is_prefetch == STARPU_TASK_PREFETCH)
-					/* Make sure it stays there */
-					dst_replicate->nb_tasks_prefetch++;
+			if (is_prefetch == STARPU_TASK_PREFETCH)
+				/* Make sure it stays there */
+				dst_replicate->nb_tasks_prefetch++;
 
+			if (dst_replicate->mc)
 				_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
-			}
 
 			if (task)
 			{
@@ -677,14 +675,12 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			{
 				if (is_prefetch <= STARPU_TASK_PREFETCH)
 					_starpu_update_data_state(handle, dst_replicate, mode);
-				if (dst_replicate->mc)
-				{
-					if (is_prefetch == STARPU_TASK_PREFETCH)
-						/* Make sure it stays there */
-						dst_replicate->nb_tasks_prefetch++;
+				if (is_prefetch == STARPU_TASK_PREFETCH)
+					/* Make sure it stays there */
+					dst_replicate->nb_tasks_prefetch++;
 
+				if (dst_replicate->mc)
 					_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
-				}
 
 				_starpu_spin_unlock(&handle->header_lock);
 
@@ -1412,7 +1408,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 
 		_starpu_spin_lock(&handle->header_lock);
 
-		if (prefetched_replicate && prefetched_replicate->mc)
+		if (prefetched_replicate)
 		{
 			/* Allocations or transfer prefetches should have been done by now and marked
 			 * this mc as needed for us.
