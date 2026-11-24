@@ -97,10 +97,8 @@ check_simgrid:
 
 analyze_coverity:
   extends: .analyze_template
-  tags:
-    - starpu
-    - linux
-    - coverity
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
   script:
     - ./contrib/gitlab/coverity.sh
 
