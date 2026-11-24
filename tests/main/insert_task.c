@@ -114,7 +114,7 @@ int test_codelet(struct starpu_codelet *codelet, int task_insert, int args, int 
 enodev:
         for(i=0 ; i<2 ; i++)
 	{
-                starpu_data_unregister_no_coherency(data_handles[i]);
+                starpu_data_unregister(data_handles[i]);
         }
 
         FPRINTF(stderr, "values: %d (should be %d) %f (should be %f)\n\n", xx, x*_ifactor, ff, f*_ffactor);
