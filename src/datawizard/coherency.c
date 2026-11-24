@@ -1179,11 +1179,13 @@ int starpu_prefetch_task_cancel_for(struct starpu_task *task, int workerid)
 			/* The scheduler has changed its mind, we may be going to another node than what was prefetched... Unreference it. */
 			/* Note: the replicate might still have been evicted in between, thus not 100% sure
 			 * that our prefetch request is still recorded here.  */
+			_starpu_spin_lock(&handle->header_lock);
 			if (prefetch_replicate->nb_tasks_prefetch > 0)
 			{
 				prefetch_replicate->nb_tasks_prefetch--;
 				descrs[index].prefetch_node = -1;
 			}
+			_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
 
