@@ -593,10 +593,6 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
-			if (is_prefetch == STARPU_TASK_PREFETCH)
-				/* Make sure it stays there */
-				dst_replicate->nb_tasks_prefetch++;
-
 			if (dst_replicate->mc)
 				_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 
@@ -675,9 +671,6 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			{
 				if (is_prefetch <= STARPU_TASK_PREFETCH)
 					_starpu_update_data_state(handle, dst_replicate, mode);
-				if (is_prefetch == STARPU_TASK_PREFETCH)
-					/* Make sure it stays there */
-					dst_replicate->nb_tasks_prefetch++;
 
 				if (dst_replicate->mc)
 					_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
@@ -765,8 +758,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		else
 		{
 			if (is_prefetch == STARPU_TASK_PREFETCH)
-				/* Make last request add the prefetch count on the mc to keep the data
-				 * there until the task gets to execute.  */
+				/* Just for debugging */
 				r->nb_tasks_prefetch++;
 
 			if (!write_invalidation)
@@ -1052,6 +1044,11 @@ static int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target
 			/* Note which node we will have prefetched on, we will need to release nb_tasks_prefetch for this node, even
 			 * if we have changed our mind. */
 			buffers[index].prefetch_node = node;
+			/* Make sure it stays there until the task gets to execute.  */
+			_starpu_spin_lock(&handle->header_lock);
+			replicate->nb_tasks_prefetch++;
+			_starpu_spin_unlock(&handle->header_lock);
+
 			task_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
 		}
 		else

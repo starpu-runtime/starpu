@@ -112,11 +112,8 @@ struct _starpu_data_replicate
 	 * we attempt to evict it. We have to make sure we decrement it on task
 	 * termination, otherwise the data would stay allocated.
 	 *
-	 * More formally, it is the sum of the nb_tasks_prefetch fields of
-	 * the STARPU_TASK_PREFETCH requests that are ongoing, or have already
-	 * completed, or were not needed because the data was already there,
-	 * whose tasks (that triggered them with task_prefetch_data_on_node)
-	 * have not completed yet.
+	 * More formally, it is the number of tasks for which
+	 * _starpu_prefetch_task_input_prio triggered a non-idle prefetch
 	 */
 	unsigned nb_tasks_prefetch;
 
