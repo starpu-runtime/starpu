@@ -254,6 +254,7 @@ int main(int argc, char **argv)
 	conf.ncpus = 1;
 	conf.ncuda = 1;
 	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_ASSERT(ret == 0);
 
 	if (params.alloc_only && params.pin_only)
