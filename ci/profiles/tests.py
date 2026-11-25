@@ -507,11 +507,11 @@ profiles = [
       'hosts'       : ['node_nogpu'],
     },
     { 'name'        : 'simgrid-mc',
-      'env'         : { 'LD_LIBRARY_PATH' : '/usr/local/stow/simgrid-3.32-mc/lib',
+      'env'         : { 'LD_LIBRARY_PATH' : '/usr/local/stow/simgrid-4.1/lib',
                         # see https://github.com/ROCm/clr/pull/101
                         'HWLOC_COMPONENTS' : '-opencl',
       },
-      'opts'        : [ '--enable-simgrid', '--disable-mpi', '--enable-simgrid-mc', '--with-simgrid-dir=/usr/local/stow/simgrid-3.32-mc', '--disable-cuda', '--disable-hip', '--disable-opencl', '--enable-blas-lib=none', '--disable-mlr', '--disable-glpk', '--disable-starpupy' ],
+      'opts'        : [ '--enable-simgrid', '--disable-mpi', '--enable-simgrid-mc', '--with-simgrid-dir=/usr/local/stow/simgrid-4.1', '--disable-cuda', '--disable-hip', '--disable-opencl', '--enable-blas-lib=none', '--disable-mlr', '--disable-glpk', '--disable-starpupy' ],
       'deploy'      : True,
       'parallel'    : 16,
       'hosts'       : ['node_nogpu'],
