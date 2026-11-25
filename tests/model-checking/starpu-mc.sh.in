@@ -24,6 +24,8 @@ set -e
 
 [ -x "$SIMGRID_MC" ] || exit 77
 
+[ -z "$SIMGRID_MC_REDUCTION" ] || MC_FLAGS=--cfg=model-check/reduction:$SIMGRID_MC_REDUCTION
+
 #MC_FLAGS=--cfg=model-check/reduction:none
 #MC_FLAGS=--cfg=model-check/reduction:dpor
 #MC_FLAGS=--cfg=model-check/reduction:sdpor
