@@ -15,4 +15,4 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 source $(dirname $0)/starpu-mc.sh
-test prio_list2
+test prio_list3
