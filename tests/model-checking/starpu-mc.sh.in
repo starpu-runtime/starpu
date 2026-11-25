@@ -1,7 +1,7 @@
 #!/bin/bash -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,10 @@ set -e
 [ -x "$SIMGRID_MC" ] || exit 77
 
 #MC_FLAGS=--cfg=model-check/reduction:none
+#MC_FLAGS=--cfg=model-check/reduction:dpor
+#MC_FLAGS=--cfg=model-check/reduction:sdpor
+#MC_FLAGS=--cfg=model-check/reduction:udpor
+#MC_FLAGS=--cfg=model-check/reduction:odpor
 
 # makes it much longer actually
 #MC_FLAGS+=--cfg=contexts/factory:ucontext
