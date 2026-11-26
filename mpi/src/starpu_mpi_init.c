@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -138,6 +138,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP_CUDA)
+#if defined(MPIX_CUDA_AWARE_SUPPORT) || defined(MPIX_GPU_SUPPORT_CUDA) || defined(MPIX_GPU_SUPPORT_HIP)
 #ifdef MPIX_CUDA_AWARE_SUPPORT
 	if (MPIX_Query_cuda_support())
 	{
@@ -148,6 +149,14 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_has_hip = 1;
 #endif
 	}
+#endif
+#ifdef MPIX_GPU_SUPPORT_CUDA
+	MPIX_GPU_query_support(MPIX_GPU_SUPPORT_CUDA, &_starpu_mpi_has_cuda);
+#endif
+#ifdef MPIX_GPU_SUPPORT_HIP
+	MPIX_GPU_query_support(MPIX_GPU_SUPPORT_HIP, &_starpu_mpi_has_hip);
+#endif
+
 	else if (_starpu_mpi_gpudirect > 0)
 		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_cuda_support reports that it is not supported.\n");
 	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda || _starpu_mpi_has_hip);
@@ -191,8 +200,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	}
 #else
 	if (_starpu_mpi_gpudirect > 0)
-		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_cuda_support function is not provided by the MPI Implementation, did you compile it with CUDA support and the Cuda MPI extension?\n");
-	_STARPU_DEBUG("No CUDA support in MPI\n");
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_cuda_support or MPIX_GPU_query_support function is not provided by the MPI Implementation, did you compile it with CUDA/HIP support and the Cuda/Hip MPI extension?\n");
+	_STARPU_DEBUG("No CUDA/HIP support in MPI\n");
 #endif
 #endif
 
