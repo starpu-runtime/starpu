@@ -1031,9 +1031,9 @@ static int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target
 
 		int node;
 		if (target_node >= 0)
-			node = _starpu_task_data_get_node_on_node(task, index, target_node);
+			node = _starpu_task_data_get_node_on_node(task, buffers[index].index, target_node);
 		else
-			node = _starpu_task_data_get_node_on_worker(task, index, worker);
+			node = _starpu_task_data_get_node_on_worker(task, buffers[index].index, worker);
 
 		if (node < 0)
 			continue;
