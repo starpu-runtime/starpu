@@ -24,9 +24,9 @@ void setvalue_cpu(void *descr[], void *_args)
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int tid, delay;
 
-	starpu_codelet_unpack_args(_args, &tid, &delay );
+	starpu_codelet_unpack_args(_args, &tid, &delay);
 
-	if ( delay )
+	if (delay)
 	{
 		usleep(10000 * (N-tid)); /* make sure tasks complete out-of-order */
 	}
@@ -36,7 +36,7 @@ void setvalue_cpu(void *descr[], void *_args)
 
 struct starpu_codelet setvalue =
 {
-	.modes = { STARPU_W },
+	.modes = {STARPU_W},
 	.cpu_funcs = {setvalue_cpu},
 	.cpu_funcs_name = {"setvalue"},
 	.nbuffers = 1
@@ -48,10 +48,12 @@ void checkvalue_cpu(void *descr[], void *_args)
 	int tid;
 
 	starpu_codelet_unpack_args(_args, &tid);
-	if ( *x0 == tid+1 ) {
+	if (*x0 == tid+1)
+	{
 		FPRINTF_MPI(stderr, "in checkvalue_cpu: expected %d, value is %d\n", tid+1, *x0);
 	}
-	else {
+	else
+	{
 		FPRINTF_MPI(stderr, "iN CHECKVALUE_CPU: EXPECTED %d, VALUE IS %d\n", tid+1, *x0);
 	}
 	STARPU_ASSERT_MSG(*x0 == tid+1, "received value %d should be %d\n", *x0, tid+1);
@@ -59,7 +61,7 @@ void checkvalue_cpu(void *descr[], void *_args)
 
 struct starpu_codelet checkvalue =
 {
-	.modes = { STARPU_R },
+	.modes = {STARPU_R},
 	.cpu_funcs = {checkvalue_cpu},
 	.cpu_funcs_name = {"checkvalue"},
 	.nbuffers = 1
@@ -151,10 +153,11 @@ int main(int argc, char **argv)
 		starpu_data_handle_t src_handles[N];
 		int i;
 
-		starpu_mpi_wait_for_all( MPI_COMM_WORLD );
-		FPRINTF_MPI(stderr, "Check send order in asynchronous mpi_data_cpy (%s)\n", prune ? "w/ pruning" : "w/o pruning" );
+		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+		FPRINTF_MPI(stderr, "Check send order in asynchronous mpi_data_cpy (%s)\n", prune ? "w/ pruning" : "w/o pruning");
 
-		for (i = 0; i < N; i++) {
+		for(i = 0; i < N; i++)
+		{
 			starpu_variable_data_register(&src_handles[i], STARPU_MAIN_RAM, (uintptr_t)&values[i], sizeof(values[i]));
 			starpu_mpi_data_register(src_handles[i], 12+i, 0);
 		}
@@ -162,34 +165,37 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&dst_handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 		starpu_mpi_data_register(dst_handle, 11, 1);
 
-		for( i = 0; i < N; i++) {
-			if(0 == prune) {
+		for(i = 0; i < N; i++)
+		{
+			if(0 == prune)
+			{
 				starpu_mpi_insert_task(MPI_COMM_WORLD, &setvalue,
 					               STARPU_W, src_handles[i],
 						       STARPU_VALUE, &i, sizeof(i),
 						       STARPU_VALUE, &one, sizeof(one),
 						       0);
-			} else {
-				if(0 == rank) {
-					starpu_task_insert(&setvalue,
-							   STARPU_W, src_handles[i],
-							   STARPU_VALUE, &i, sizeof(i),
-							   0);
-				}
+			}
+			else if (0 == rank)
+			{
+				starpu_task_insert(&setvalue,
+						   STARPU_W, src_handles[i],
+						   STARPU_VALUE, &i, sizeof(i),
+						   0);
 			}
 			starpu_mpi_data_cpy(dst_handle, src_handles[i], MPI_COMM_WORLD, 1, NULL, NULL);
-			if(0 == prune) {
+			if (0 == prune)
+			{
 				starpu_mpi_insert_task(MPI_COMM_WORLD, &checkvalue,
 						       STARPU_R, dst_handle,
 						       STARPU_VALUE, &i, sizeof(i),
 						       0);
-			} else {
-				if(1 == rank) {
-					starpu_task_insert(&checkvalue,
-							   STARPU_R, dst_handle,
-							   STARPU_VALUE, &i, sizeof(i),
-							   0);
-				}
+			}
+			else if(1 == rank)
+			{
+				starpu_task_insert(&checkvalue,
+						   STARPU_R, dst_handle,
+						   STARPU_VALUE, &i, sizeof(i),
+						   0);
 			}
 		}
 
@@ -208,10 +214,11 @@ int main(int argc, char **argv)
 		starpu_data_handle_t dst_handles[N];
 		int i;
 
-		starpu_mpi_wait_for_all( MPI_COMM_WORLD );
-		FPRINTF_MPI(stderr, "Check recv order in asynchronous mpi_data_cpy (%s)\n", prune ? "w/ pruning" : "w/o pruning" );
+		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+		FPRINTF_MPI(stderr, "Check recv order in asynchronous mpi_data_cpy (%s)\n", prune ? "w/ pruning" : "w/o pruning");
 
-		for (i = 0; i < N; i++) {
+		for (i = 0; i < N; i++)
+		{
 			starpu_variable_data_register(&dst_handles[i], STARPU_MAIN_RAM, (uintptr_t)&values[i], sizeof(values[i]));
 			starpu_mpi_data_register(dst_handles[i], 12+i, 0);
 		}
@@ -219,8 +226,10 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&src_handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 		starpu_mpi_data_register(src_handle, 11, 1);
 
-		for( i = 0; i < N; i++) {
-			if(0 == prune) {
+		for(i = 0; i < N; i++)
+		{
+			if(0 == prune)
+			{
 				starpu_mpi_insert_task(MPI_COMM_WORLD, &setvalue,
 					               STARPU_W, src_handle,
 						       STARPU_VALUE, &i,sizeof(i),
@@ -231,35 +240,37 @@ int main(int argc, char **argv)
 						       STARPU_VALUE, &zero, sizeof(zero),
 						       STARPU_VALUE, &one, sizeof(one),
 						       0);
-			} else {
-				if(0 == rank) {
-					starpu_mpi_insert_task(MPI_COMM_WORLD, &setvalue,
-							       STARPU_W, dst_handles[i],
+			}
+			else if(0 == rank)
+			{
+				starpu_mpi_insert_task(MPI_COMM_WORLD, &setvalue,
+						       STARPU_W, dst_handles[i],
+						       STARPU_VALUE, &zero, sizeof(zero),
+						       STARPU_VALUE, &one, sizeof(one),
+						       0);
+			}
+			else if(1 == rank)
+			{
+				starpu_mpi_insert_task(MPI_COMM_WORLD, &setvalue,
+						       STARPU_W, src_handle,
+						       STARPU_VALUE, &i,sizeof(i),
 							       STARPU_VALUE, &zero, sizeof(zero),
-							       STARPU_VALUE, &one, sizeof(one),
-							       0);
-				}
-				else if(1 == rank) {
-					starpu_mpi_insert_task(MPI_COMM_WORLD, &setvalue,
-							       STARPU_W, src_handle,
-							       STARPU_VALUE, &i,sizeof(i),
-							       STARPU_VALUE, &zero, sizeof(zero),
-							       0);
-				}
+						       0);
 			}
 			starpu_mpi_data_cpy(dst_handles[i], src_handle, MPI_COMM_WORLD, 1, NULL, NULL);
-			if(0 == prune) {
+			if(0 == prune)
+			{
 				starpu_mpi_insert_task(MPI_COMM_WORLD, &checkvalue,
 						       STARPU_R, dst_handles[i],
 						       STARPU_VALUE, &i, sizeof(i),
 						       0);
-			} else {
-				if(0 == rank) {
-					starpu_task_insert(&checkvalue,
-							   STARPU_R, dst_handles[i],
-							   STARPU_VALUE, &i, sizeof(i),
-							   0);
-				}
+			}
+			else if(0 == rank)
+			{
+				starpu_task_insert(&checkvalue,
+						   STARPU_R, dst_handles[i],
+						   STARPU_VALUE, &i, sizeof(i),
+						   0);
 			}
 		}
 
