@@ -37,6 +37,9 @@ set -e
 #MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
 #MC_FLAGS+=--cfg=model-check/visited:1000
 
+# to get an ETA
+#MC_FLAGS+=--cfg=model-check/eta-steps:1000
+
 test() {
 	time $SIMGRID_MC $abs_builddir/$1 $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
 }
