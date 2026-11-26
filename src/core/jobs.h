@@ -62,7 +62,7 @@ struct _starpu_data_descr
 	int node; /** This is the value actually chosen, only set by
 		     _starpu_fetch_task_input for coherency with
 		     _starpu_fetch_task_input_tail and __starpu_push_task_output */
-	int index;
+	int index; /** Original index within task */
 
 	int orderedindex; /** For this field the array is actually indexed by
 			     parameter order, and this provides the ordered
