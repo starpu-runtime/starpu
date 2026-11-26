@@ -24,6 +24,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 	/* Initialize the request structure */
 
 	//req->data_handle = NULL;
+	//req->data_handle_remote = NULL;
 	//req->prio = 0;
 	req->node = (unsigned) -1;
 
@@ -67,7 +68,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 #endif
 }
 
-struct _starpu_mpi_req *_starpu_mpi_request_new(starpu_data_handle_t data_handle,
+struct _starpu_mpi_req *_starpu_mpi_request_new(starpu_data_handle_t data_handle, starpu_data_handle_t data_handle_remote,
 						int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 						unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
@@ -86,6 +87,7 @@ struct _starpu_mpi_req *_starpu_mpi_request_new(starpu_data_handle_t data_handle
 	if (_starpu_mpi_use_prio)
 		req->prio = prio;
 	req->data_handle = data_handle;
+	req->data_handle_remote = data_handle_remote;
 	req->node_tag.node.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
 	req->node_tag.node.comm = comm;

@@ -677,7 +677,7 @@ int _starpu_mpi_mpi_backend_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->backend->req_mutex));
 
 	/* Initialize the request structure */
-	waiting_req = _starpu_mpi_request_new(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
+	waiting_req = _starpu_mpi_request_new(NULL, NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
 					      INT_MAX, NULL, NULL,
 					      WAIT_REQ, _starpu_mpi_wait_func, 0, 0, MPI_COMM_WORLD, 0);
 	waiting_req->status = status;
@@ -784,7 +784,7 @@ int _starpu_mpi_mpi_backend_test(starpu_mpi_req *public_req, int *flag, MPI_Stat
 		struct _starpu_mpi_req *testing_req;
 
 		/* Initialize the request structure */
-		testing_req = _starpu_mpi_request_new(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
+		testing_req = _starpu_mpi_request_new(NULL, NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
 						      INT_MAX, NULL, NULL,
 						      TEST_REQ, _starpu_mpi_test_func,
 						      0, 0, MPI_COMM_WORLD, 0);
@@ -861,7 +861,7 @@ int _starpu_mpi_mpi_backend_barrier(MPI_Comm comm)
 	struct _starpu_mpi_req *barrier_req;
 
 	/* Initialize the request structure */
-	barrier_req = _starpu_mpi_request_new(NULL, 0, 0, comm, 0, 0, 0, NULL, NULL, BARRIER_REQ, _starpu_mpi_barrier_func, 0, 0, _starpu_mpi_ulfm_get_mpi_comm_from_key(comm), -1);
+	barrier_req = _starpu_mpi_request_new(NULL, NULL, 0, 0, comm, 0, 0, 0, NULL, NULL, BARRIER_REQ, _starpu_mpi_barrier_func, 0, 0, _starpu_mpi_ulfm_get_mpi_comm_from_key(comm), -1);
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(barrier_req, 1);
 	_starpu_mpi_submit_ready_request(barrier_req);
@@ -1295,7 +1295,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %"PRIi64" from comm %ld src %d ..\n",
 			  early_data_handle->node_tag.data_tag, (long int)comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
+	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, internal_comm, 1, 0,
 							  NULL, NULL, 1, 1, envelope->size, STARPU_DEFAULT_PRIO);
 	/* The early data handle is ready, we can let _starpu_mpi_submit_ready_request
@@ -1544,7 +1544,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #warning creating a request is not really useful.
 #endif
 							/* Initialize the request structure */
-							new_req = _starpu_mpi_request_new(NULL, envelope_status.MPI_SOURCE, envelope->data_tag, envelope_app_comm,
+							new_req = _starpu_mpi_request_new(NULL, NULL, envelope_status.MPI_SOURCE, envelope->data_tag, envelope_app_comm,
 											  1, 1, 0, NULL, NULL, RECV_REQ, _starpu_mpi_mpi_backend_irecv,
 											  1, 0, envelope_comm, envelope->size);
 							_starpu_mpi_sync_data_add(new_req);

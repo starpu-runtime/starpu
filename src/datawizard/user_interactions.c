@@ -641,6 +641,27 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 			pre_sync_jobid, post_sync_jobid, prio, need_to_be_unpart_or_part);
 }
 
+int starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node,
+							  enum starpu_data_access_mode mode,
+							  starpu_data_handle_t handle2, starpu_data_handle_t *real_handle2, int node2,
+							  enum starpu_data_access_mode mode2,
+							  void (*callback_soon)(void *arg, double delay),
+							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+							  void (*callback)(void *arg),
+							  void *arg,
+							  int sequential_consistency, int quick,
+							  long *pre_sync_jobid, long *post_sync_jobid, int prio)
+{
+	return 	_starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(handle, real_handle, node, mode,
+										   handle2, real_handle2, node2, mode2,
+										   callback_soon,
+										   callback_acquired,
+										   callback,
+										   arg,
+										   sequential_consistency, quick,
+										   pre_sync_jobid, post_sync_jobid, prio, 1);
+}
+
 int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node,
 							  enum starpu_data_access_mode mode,
 							  void (*callback_soon)(void *arg, double delay),

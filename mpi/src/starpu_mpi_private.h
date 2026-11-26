@@ -259,6 +259,8 @@ struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
 	  /** description of the data at StarPU level */
 	  starpu_data_handle_t data_handle;
+	  /** The handle at the remote location, usually the same as ::data_handle */
+	  starpu_data_handle_t data_handle_remote;
 
 	  int prio;
 	  int node;	/* Which StarPU memory node this will read from / write to */
@@ -322,7 +324,7 @@ void _starpu_mpi_submit_ready_request(void *arg);
 /** To be called when request is completed */
 void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
 
-void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
+void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, enum starpu_data_access_mode mode_remote, int sequential_consistency);
 
 #if 0
 /** Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */
@@ -347,7 +349,7 @@ void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, in
 void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, long * const post_sync_jobid);
 
 void _starpu_mpi_request_init(struct _starpu_mpi_req *req);
-struct _starpu_mpi_req * _starpu_mpi_request_new(starpu_data_handle_t data_handle,
+struct _starpu_mpi_req * _starpu_mpi_request_new(starpu_data_handle_t data_handle, starpu_data_handle_t data_handle_remote,
 						 int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 						 unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						 enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
@@ -359,7 +361,7 @@ void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 
-struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_mpi_comm internal_comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio);
+struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, starpu_data_handle_t data_handle_remote, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_mpi_comm internal_comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio);
 
 /* Choose the starpu node to receive MPI data into.  */
 int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);

@@ -58,6 +58,9 @@ void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req)
 	{
 		/* Trivial request */
 		starpu_data_release_on_node(req->data_handle, req->node);
+		/* Different handle on remote, release it too */
+		if (req->data_handle_remote != req->data_handle)
+			starpu_data_release_on_node(req->data_handle_remote, STARPU_ACQUIRE_NO_NODE);
 	}
 }
 
@@ -303,7 +306,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 				 * simultaneously, which will trigger different broadcasts. */
 				_starpu_spin_unlock(&mpi_data->coop_lock);
 
-				_starpu_mpi_isend_irecv_common(req, mode, sequential_consistency);
+				_starpu_mpi_isend_irecv_common(req, mode, 0, sequential_consistency);
 				return;
 			}
 		}
