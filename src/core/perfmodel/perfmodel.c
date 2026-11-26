@@ -451,6 +451,11 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	if (!(mode & STARPU_R))
 		return 0.0;
 
+	/* FIXME: it also says true when a transfer is pending. We should rather
+	 * check for the data to be really already there, and in
+	 * _starpu_data_expected_transfer_time look for existing requests,
+	 * and check their start time against the estimated duration,
+	 * to add only the remainder */
 	if (starpu_data_is_on_node(handle, memory_node))
 		return 0.0;
 
