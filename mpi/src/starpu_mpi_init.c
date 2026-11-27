@@ -157,7 +157,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	MPIX_GPU_query_support(MPIX_GPU_SUPPORT_HIP, &_starpu_mpi_has_hip);
 #endif
 
-	else if (_starpu_mpi_gpudirect > 0)
+	if (_starpu_mpi_gpudirect > 0)
 		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_cuda_support reports that it is not supported.\n");
 	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda || _starpu_mpi_has_hip);
 	if (!_starpu_mpi_gpudirect)
